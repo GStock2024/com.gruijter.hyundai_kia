@@ -22,15 +22,17 @@ along with com.gruijter.hyundai_kia. If not, see <http://www.gnu.org/licenses/>.
 const GenericDriver = require('../generic_driver');
 
 const driverSpecifics = {
-	driverId: 'uvo',
+  driverId: 'uvo',
 };
 
 class UvoDriver extends GenericDriver {
-	onInit() {
-		// this.log('driver onInit');
-		this.ds = driverSpecifics;
-		this.onDriverInit();
-	}
+
+  onInit() {
+    // this.log('driver onInit');
+    this.ds = driverSpecifics;
+    this.onDriverInit().catch((error) => this.error(error));
+  }
+
 }
 
 module.exports = UvoDriver;

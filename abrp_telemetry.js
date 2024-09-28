@@ -46,281 +46,268 @@ const planLightEP = '/1/plan_light';
 // ABRP_TLM represents a session to send live car telemetry to A Better Route Planner account
 class ABRP_TLM {
 
-	constructor(opts) {
-		this.host = opts.host || apiHost;
-		this.port = opts.port || 443;
-		this.timeout = opts.timeout || 10000;
-		this.lastResponse = undefined;
-		this.userToken = opts.userToken;
-		this.apiKey = opts.apiKey;
-		if (!opts.apiKey) throw Error('apiKey is required');
+  constructor(opts) {
+    this.host = opts.host || apiHost;
+    this.port = opts.port || 443;
+    this.timeout = opts.timeout || 10000;
+    this.lastResponse = undefined;
+    this.userToken = opts.userToken;
+    this.apiKey = opts.apiKey;
+    if (!opts.apiKey) throw Error('apiKey is required');
 
-		this.apiKeyPlan = opts.apiKeyPlan || opts.apiKey;
-		this.deviceId = crypto.randomBytes(32).toString('hex');
-		this.cookie = undefined;
-		this.sessionId = undefined;
-	}
+    this.apiKeyPlan = opts.apiKeyPlan || opts.apiKey;
+    this.deviceId = crypto.randomBytes(32).toString('hex');
+    this.cookie = undefined;
+    this.sessionId = undefined;
+  }
 
-	// Telemetry API
+  // Telemetry API
 
-	async send(data) {
-		try {
-			const body = {
-				tlm: {
-					utc: Math.round(Date.now() / 1000), // Current UTC timestamp (epoch) in seconds (note, not milliseconds!)
-					soc: data.soc, // [SoC %]: State of Charge of the vehicle (what's displayed on the dashboard of the vehicle is preferred)
-					speed: data.speed, // [km/h]: Vehicle speed
-					lat: data.lat, // [degrees]: Current vehicle latitude
-					lon: data.lon, //  [degrees]: Current vehicle longitude
-					is_charging: data.charging, // [boolean or 1/0]: Determines vehicle state. 0 is not charging, 1 is charging
-					is_dcfc: data.dcfc, // If is_charging, indicate if this is DC fast charging
-				},
-			};
-			const path = `${sendEP}?tlm=${JSON.stringify(body.tlm)}&token=${this.userToken}`;
-			const result = await this._makeRequest(path);
-			return Promise.resolve(result);
-		} catch (error) {
-			return Promise.reject(error);
-		}
-	}
+  async send(data) {
+    try {
+      const body = {
+        tlm: {
+          utc: Math.round(Date.now() / 1000), // Current UTC timestamp (epoch) in seconds (note, not milliseconds!)
+          soc: data.soc, // [SoC %]: State of Charge of the vehicle (what's displayed on the dashboard of the vehicle is preferred)
+          speed: data.speed, // [km/h]: Vehicle speed
+          lat: data.lat, // [degrees]: Current vehicle latitude
+          lon: data.lon, //  [degrees]: Current vehicle longitude
+          is_charging: data.charging, // [boolean or 1/0]: Determines vehicle state. 0 is not charging, 1 is charging
+          is_dcfc: data.dcfc, // If is_charging, indicate if this is DC fast charging
+        },
+      };
+      const path = `${sendEP}?tlm=${JSON.stringify(body.tlm)}&token=${this.userToken}`;
+      const result = await this._makeRequest(path);
+      return Promise.resolve(result);
+    } catch (error) {
+      return Promise.reject(error);
+    }
+  }
 
-	async getCarModels() {
-		try {
-			const path = getCarModelsEP;
-			const result = await this._makeRequest(path);
-			return Promise.resolve(result);
-		} catch (error) {
-			return Promise.reject(error);
-		}
-	}
+  async getCarModels() {
+    try {
+      const path = getCarModelsEP;
+      const result = await this._makeRequest(path);
+      return Promise.resolve(result);
+    } catch (error) {
+      return Promise.reject(error);
+    }
+  }
 
-	async setNextCharge(level) {
-		try {
-			const body = { next_charge_to_perc: level };
-			const path = `${setNextChargeEP}?token=${this.userToken}`;
-			const result = await this._makeRequest(path, body);
-			return Promise.resolve(result);
-		} catch (error) {
-			return Promise.reject(error);
-		}
-	}
+  async setNextCharge(level) {
+    try {
+      const body = { next_charge_to_perc: level };
+      const path = `${setNextChargeEP}?token=${this.userToken}`;
+      const result = await this._makeRequest(path, body);
+      return Promise.resolve(result);
+    } catch (error) {
+      return Promise.reject(error);
+    }
+  }
 
-	async getNextCharge() {
-		try {
-			const path = `${getNextChargeEP}?token=${this.userToken}`;
-			const result = await this._makeRequest(path);
-			return Promise.resolve(result);
-		} catch (error) {
-			return Promise.reject(error);
-		}
-	}
+  async getNextCharge() {
+    try {
+      const path = `${getNextChargeEP}?token=${this.userToken}`;
+      const result = await this._makeRequest(path);
+      return Promise.resolve(result);
+    } catch (error) {
+      return Promise.reject(error);
+    }
+  }
 
-	async getLatestPlan() {
-		try {
-			const path = `${getLatestPlanEP}?token=${this.userToken}`;
-			const result = await this._makeRequest(path);
-			return Promise.resolve(result);
-		} catch (error) {
-			return Promise.reject(error);
-		}
-	}
+  async getLatestPlan() {
+    try {
+      const path = `${getLatestPlanEP}?token=${this.userToken}`;
+      const result = await this._makeRequest(path);
+      return Promise.resolve(result);
+    } catch (error) {
+      return Promise.reject(error);
+    }
+  }
 
-	// Planning API
+  // Planning API
 
-	async newSession() {
-		try {
-			const body = { platform: 'ios', device_id: this.deviceId };
-			const path = `${newSessionEP}`;
-			const result = await this._makeSessionRequest(path, body);
-			this.sessionId = result;
-			return Promise.resolve(result);
-		} catch (error) {
-			return Promise.reject(error);
-		}
-	}
+  async newSession() {
+    try {
+      const body = { platform: 'ios', device_id: this.deviceId };
+      const path = `${newSessionEP}`;
+      const result = await this._makeSessionRequest(path, body);
+      this.sessionId = result;
+      return Promise.resolve(result);
+    } catch (error) {
+      return Promise.reject(error);
+    }
+  }
 
-	// async getSession() {
-	// 	try {
-	// 		const body = {
-	// 			client: 'abrp-ios', version: 345, variant: 'default',
-	// 		};
-	// 		const path = `${getSessionEP}?session_id=${this.sessionId}`;
-	// 		const result = await this._makeSessionRequest(path, body);
-	// 		return Promise.resolve(result);
-	// 	} catch (error) {
-	// 		return Promise.reject(error);
-	// 	}
-	// }
+  async getVehicleLibrary() {
+    try {
+      const path = `${getVehicleLibraryEP}?session_id=${this.sessionId}`;
+      const result = await this._makeSessionRequest(path);
+      return Promise.resolve(result);
+    } catch (error) {
+      return Promise.reject(error);
+    }
+  }
 
-	async getVehicleLibrary() {
-		try {
-			const path = `${getVehicleLibraryEP}?session_id=${this.sessionId}`;
-			const result = await this._makeSessionRequest(path);
-			return Promise.resolve(result);
-		} catch (error) {
-			return Promise.reject(error);
-		}
-	}
+  async getChargers(parameters) { // { lat, lon, radius, types, limit, allowed_dbs }
+    try {
+      const query = parameters || {};
+      Object.keys(query).forEach((param) => {
+        if (typeof query[param] === 'object') {
+          query[param] = JSON.stringify(query[param]);
+        }
+      });
+      const path = `${getChargersEP}?session_id=${this.sessionId}&${qs.stringify(query)}`;
+      const result = await this._makeSessionRequest(path);
+      return Promise.resolve(result);
+    } catch (error) {
+      return Promise.reject(error);
+    }
+  }
 
-	async getChargers(parameters) {	// { lat, lon, radius, types, limit, allowed_dbs }
-		try {
-			const query = parameters || {};
-			Object.keys(query).forEach((param) => {
-				if (typeof query[param] === 'object') {
-					query[param] = JSON.stringify(query[param]);
-				}
-			});
-			const path = `${getChargersEP}?session_id=${this.sessionId}&${qs.stringify(query)}`;
-			const result = await this._makeSessionRequest(path);
-			return Promise.resolve(result);
-		} catch (error) {
-			return Promise.reject(error);
-		}
-	}
+  async getOutletTypes() {
+    try {
+      const path = `${getOutletTypesEP}?session_id=${this.sessionId}`;
+      const result = await this._makeSessionRequest(path);
+      return Promise.resolve(result);
+    } catch (error) {
+      return Promise.reject(error);
+    }
+  }
 
-	async getOutletTypes() {
-		try {
-			const path = `${getOutletTypesEP}?session_id=${this.sessionId}`;
-			const result = await this._makeSessionRequest(path);
-			return Promise.resolve(result);
-		} catch (error) {
-			return Promise.reject(error);
-		}
-	}
+  async getNetworks() {
+    try {
+      const path = `${getNetworksEP}?session_id=${this.sessionId}`;
+      const result = await this._makeSessionRequest(path);
+      return Promise.resolve(result);
+    } catch (error) {
+      return Promise.reject(error);
+    }
+  }
 
-	async getNetworks() {
-		try {
-			const path = `${getNetworksEP}?session_id=${this.sessionId}`;
-			const result = await this._makeSessionRequest(path);
-			return Promise.resolve(result);
-		} catch (error) {
-			return Promise.reject(error);
-		}
-	}
+  async plan(parameters) { // see https://tinyurl.com/ynskkxed
+    try {
+      const query = parameters || {};
+      Object.keys(query).forEach((param) => {
+        if (typeof query[param] === 'object') {
+          query[param] = JSON.stringify(query[param]);
+        }
+      });
+      const path = `${planEP}?session_id=${this.sessionId}&${qs.stringify(query)}`;
+      const result = await this._makeSessionRequest(path);
+      return Promise.resolve(result);
+    } catch (error) {
+      return Promise.reject(error);
+    }
+  }
 
-	async plan(parameters) { // see https://tinyurl.com/ynskkxed
-		try {
-			const query = parameters || {};
-			Object.keys(query).forEach((param) => {
-				if (typeof query[param] === 'object') {
-					query[param] = JSON.stringify(query[param]);
-				}
-			});
-			const path = `${planEP}?session_id=${this.sessionId}&${qs.stringify(query)}`;
-			const result = await this._makeSessionRequest(path);
-			return Promise.resolve(result);
-		} catch (error) {
-			return Promise.reject(error);
-		}
-	}
+  async planLight(parameters) { // { car_model, destinations, initial_soc_perc }
+    try {
+      const query = parameters || {};
+      Object.keys(query).forEach((param) => {
+        if (typeof query[param] === 'object') {
+          query[param] = JSON.stringify(query[param]);
+        }
+      });
+      const path = `${planLightEP}?session_id=${this.sessionId}&${qs.stringify(query)}`;
+      const result = await this._makeSessionRequest(path);
+      return Promise.resolve(result);
+    } catch (error) {
+      return Promise.reject(error);
+    }
+  }
 
-	async planLight(parameters) {	// { car_model, destinations, initial_soc_perc }
-		try {
-			const query = parameters || {};
-			Object.keys(query).forEach((param) => {
-				if (typeof query[param] === 'object') {
-					query[param] = JSON.stringify(query[param]);
-				}
-			});
-			const path = `${planLightEP}?session_id=${this.sessionId}&${qs.stringify(query)}`;
-			const result = await this._makeSessionRequest(path);
-			return Promise.resolve(result);
-		} catch (error) {
-			return Promise.reject(error);
-		}
-	}
+  // HTTP request stuff
 
-	// HTTP request stuff
+  async _makeSessionRequest(path, message) {
+    try {
+      const postData = message ? qs.stringify(message) : '';
+      // const postData = message ? JSON.stringify(message) : '';
+      const headers = {
+        Authorization: `APIKEY ${this.apiKeyPlan}`,
+        'Content-Type': 'multipart/form-data',
+        'content-length': Buffer.byteLength(postData),
+        connection: 'Keep-Alive',
+      };
+      if (this.cookie) headers.cookie = this.cookie;
+      const options = {
+        hostname: this.host,
+        port: this.port,
+        path,
+        headers,
+        method: 'POST',
+      };
+      const result = await this._makeHttpsRequest(options, postData);
+      if (result.statusCode !== 200 || !result.body) {
+        throw Error(`${result.statusCode} ${result.body}`);
+      }
+      const json = JSON.parse(result.body);
+      if (!json.result || json.status !== 'ok') throw Error(result.body);
+      if (result.headers['set-cookie']) this.cookie = result.headers['set-cookie'];
+      return Promise.resolve(json.result);
+    } catch (error) {
+      return Promise.reject(error);
+    }
+  }
 
-	async _makeSessionRequest(path, message) {
-		try {
-			const postData = message ? qs.stringify(message) : '';
-			// const postData = message ? JSON.stringify(message) : '';
-			const headers = {
-				Authorization: `APIKEY ${this.apiKeyPlan}`,
-				'Content-Type': 'multipart/form-data',
-				'content-length': Buffer.byteLength(postData),
-				connection: 'Keep-Alive',
-			};
-			if (this.cookie) headers.cookie = this.cookie;
-			const options = {
-				hostname: this.host,
-				port: this.port,
-				path,
-				headers,
-				method: 'POST',
-			};
-			const result = await this._makeHttpsRequest(options, postData);
-			if (result.statusCode !== 200 || !result.body) {
-				throw Error(`${result.statusCode} ${result.body}`);
-			}
-			const json = JSON.parse(result.body);
-			if (!json.result || json.status !== 'ok') throw Error(result.body);
-			if (result.headers['set-cookie']) this.cookie = result.headers['set-cookie'];
-			return Promise.resolve(json.result);
-		} catch (error) {
-			return Promise.reject(error);
-		}
-	}
+  async _makeRequest(path, message) {
+    try {
+      const postData = message ? qs.stringify(message) : '';
+      // const postData = message ? JSON.stringify(message) : '';
+      const headers = {
+        Authorization: `APIKEY ${this.apiKey}`,
+        'content-length': Buffer.byteLength(postData),
+        connection: 'Keep-Alive',
+        'Content-Type': 'multipart/form-data', // 'application/json',
+      };
+      const options = {
+        hostname: this.host,
+        port: this.port,
+        path,
+        headers,
+        method: 'POST',
+      };
+      const result = await this._makeHttpsRequest(options, postData);
+      if (result.statusCode !== 200 || !result.body) {
+        throw Error(`${result.statusCode} ${result.body}`);
+      }
+      const json = JSON.parse(result.body);
+      if (json.status !== 'ok') throw Error(result.body);
+      return Promise.resolve(json.result);
+    } catch (error) {
+      return Promise.reject(error);
+    }
+  }
 
-	async _makeRequest(path, message) {
-		try {
-			const postData = message ? qs.stringify(message) : '';
-			// const postData = message ? JSON.stringify(message) : '';
-			const headers = {
-				Authorization: `APIKEY ${this.apiKey}`,
-				'content-length': Buffer.byteLength(postData),
-				connection: 'Keep-Alive',
-				'Content-Type': 'multipart/form-data', // 'application/json',
-			};
-			const options = {
-				hostname: this.host,
-				port: this.port,
-				path,
-				headers,
-				method: 'POST',
-			};
-			const result = await this._makeHttpsRequest(options, postData);
-			if (result.statusCode !== 200 || !result.body) {
-				throw Error(`${result.statusCode} ${result.body}`);
-			}
-			const json = JSON.parse(result.body);
-			if (json.status !== 'ok') throw Error(result.body);
-			return Promise.resolve(json.result);
-		} catch (error) {
-			return Promise.reject(error);
-		}
-	}
-
-	_makeHttpsRequest(options, postData, timeout) {
-		return new Promise((resolve, reject) => {
-			const opts = options;
-			opts.timeout = timeout || this.timeout;
-			const req = https.request(opts, (res) => {
-				let resBody = '';
-				res.on('data', (chunk) => {
-					resBody += chunk;
-				});
-				res.once('end', () => {
-					if (!res.complete) {
-						return reject(Error('The connection was terminated while the message was still being sent'));
-					}
-					res.body = resBody;
-					return resolve(res); // resolve the request
-				});
-			});
-			req.on('error', (e) => {
-				req.destroy();
-				this.lastResponse = e;	// e.g. ECONNREFUSED on wrong soap port or wrong IP // ECONNRESET on wrong IP
-				return reject(e);
-			});
-			req.on('timeout', () => {
-				req.destroy();
-			});
-			// req.write(postData);
-			req.end(postData);
-		});
-	}
+  _makeHttpsRequest(options, postData, timeout) {
+    return new Promise((resolve, reject) => {
+      const opts = options;
+      opts.timeout = timeout || this.timeout;
+      const req = https.request(opts, (res) => {
+        let resBody = '';
+        res.on('data', (chunk) => {
+          resBody += chunk;
+        });
+        res.once('end', () => {
+          if (!res.complete) {
+            return reject(Error('The connection was terminated while the message was still being sent'));
+          }
+          res.body = resBody;
+          return resolve(res); // resolve the request
+        });
+      });
+      req.on('error', (e) => {
+        req.destroy();
+        this.lastResponse = e; // e.g. ECONNREFUSED on wrong soap port or wrong IP // ECONNRESET on wrong IP
+        return reject(e);
+      });
+      req.on('timeout', () => {
+        req.destroy();
+      });
+      // req.write(postData);
+      req.end(postData);
+    });
+  }
 
 }
 

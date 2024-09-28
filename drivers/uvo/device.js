@@ -22,15 +22,16 @@ along with com.gruijter.hyundai_kia. If not, see <http://www.gnu.org/licenses/>.
 const GenericDevice = require('../generic_device');
 
 const deviceSpecifics = {
-	deviceId: 'uvo',
+  deviceId: 'uvo',
 };
 
 class UvoDevice extends GenericDevice {
 
-	onInit() {
-		this.ds = deviceSpecifics;
-		this.onInitDevice();
-	}
+  onInit() {
+    this.ds = deviceSpecifics;
+    this.onInitDevice().catch((error) => this.error(error));
+  }
+
 }
 
 module.exports = UvoDevice;

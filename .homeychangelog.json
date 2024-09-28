@@ -187,5 +187,8 @@
   },
   "3.1.4": {
     "en": "Option to force EV capabilities."
+  },
+  "3.1.5": {
+    "en": "Capability flows compatibility >=fw12.2.0. Code cleanup."
   }
 }

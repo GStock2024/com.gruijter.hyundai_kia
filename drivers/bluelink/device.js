@@ -22,15 +22,16 @@ along with com.gruijter.hyundai_kia. If not, see <http://www.gnu.org/licenses/>.
 const GenericDevice = require('../generic_device');
 
 const deviceSpecifics = {
-	deviceId: 'bluelink',
+  deviceId: 'bluelink',
 };
 
 class BluelinkDevice extends GenericDevice {
 
-	onInit() {
-		this.ds = deviceSpecifics;
-		this.onInitDevice();
-	}
+  onInit() {
+    this.ds = deviceSpecifics;
+    this.onInitDevice().catch((error) => this.error(error));
+  }
+
 }
 
 module.exports = BluelinkDevice;
